@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>레이더 추적 기술 및 필터 알고리즘 총괄 분석</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #0ea5e9;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --highlight: #38bdf8;
+            --radar-green: #22c55e;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 2px solid var(--accent-color);
+            margin-bottom: 40px;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 70%);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--highlight);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .page-num {
+            background-color: var(--accent-color);
+            color: #fff;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 6px;
+            margin-right: 15px;
+            font-size: 0.9rem;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            color: var(--highlight);
+        }
+
+        ul {
+            list-style-position: inside;
+            margin-bottom: 20px;
+            padding-left: 5px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        li strong {
+            color: var(--highlight);
+        }
+
+        .description {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            border-left: 3px solid var(--radar-green);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            background-color: #0f172a;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: rgba(56, 189, 248, 0.1);
+            color: var(--highlight);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .metaphor {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #1e293b 0%, #111827 100%);
+            border: 1px solid var(--radar-green);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .metaphor h2 {
+            color: var(--radar-green);
+            margin-bottom: 20px;
+        }
+
+        .metaphor p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Radar Scan Effect */
+        .scan-line {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: scan 3s linear infinite;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>레이더 추적 기술 및 필터 알고리즘 총괄 분석</h1>
+        <p class="subtitle">Radar Tracking Technology & Filtering Algorithms Analysis</p>
+    </header>
+
+    <div class="container">
+
+        <!-- Page 1 -->
+        <article class="card">
+            <div class="scan-line"></div>
+            <div class="card-header">
+                <span class="page-num">01</span>
+                <h2>레이더 추적기의 역할 및 개요</h2>
+            </div>
+            <ul>
+                <li><strong>레이더 추적기의 정의:</strong> 레이더 관측치를 표적의 항적으로 연관시키는 핵심 기술.</li>
+                <li><strong>항적 생성:</strong> 센서 정보를 융합하여 지속적인 경로 형성.</li>
+                <li><strong>상태 변수 추정:</strong> 위치, 속도, 진행 방향 정밀 추산.</li>
+                <li><strong>잡음 제거:</strong> 열잡음 및 클러터 등 허위 신호 식별.</li>
+                <li><strong>오차 평활화:</strong> 수학적 모델로 오차를 보정하여 정밀도 개선.</li>
+            </ul>
+            <div class="description">
+                레이더 추적기는 플롯 간의 상관관계를 분석하여 고유 번호를 부여하고 상황 인식 능력을 극대화합니다. 단순 위치를 넘어 속도, 헤딩, IFF 정보까지 포함한 종합 항적을 제공합니다.
+            </div>
+        </article>
+
+        <!-- Page 2 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">02</span>
+                <h2>추적 알고리즘의 일반적 접근 단계</h2>
+            </div>
+            <ul>
+                <li><strong>연관성 판단:</strong> 신규 플롯과 기존 항적 대조 및 연결.</li>
+                <li><strong>항적 갱신:</strong> 예측치와 측정치를 이용해 상태 정보 최신화.</li>
+                <li><strong>신규 항적 개시:</strong> 미연관 플롯으로 새로운 추적 시작.</li>
+                <li><strong>추적 유지/삭제:</strong> 데이터 미수신 시 예측 유지 또는 종료.</li>
+                <li><strong>연산 효율성:</strong> 제한된 자원에서 실시간 처리 최적화.</li>
+            </ul>
+            <div class="description">
+                플롯-항적 연관부터 평활화까지 정형화된 단계를 거칩니다. 실시간 처리가 필수적이며 연산 능력의 한계가 알고리즘 선택의 기준이 됩니다.
+            </div>
+            <table>
+                <tr><th>항목</th><th>내용</th></tr>
+                <tr><td>위치/헤딩/속도</td><td>필수 물리량</td></tr>
+                <tr><td>Track ID</td><td>고유 식별 번호</td></tr>
+                <tr><td>신뢰도</td><td>오차 공분산 정보</td></tr>
+            </table>
+        </article>
+
+        <!-- Page 3 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">03</span>
+                <h2>플롯-항적 연관 및 관리 기법</h2>
+            </div>
+            <ul>
+                <li><strong>수용 게이트:</strong> 예측 위치 주변의 통계적 범위 설정.</li>
+                <li><strong>후보 선택:</strong> 최근접 이웃(NN) 또는 최대 강도 선택법.</li>
+                <li><strong>데이터 연관 필터:</strong> JPDAF 등 확률적 조합 분석.</li>
+                <li><strong>M-of-N 규칙:</strong> N번 중 M번 탐지 시 항적 확정.</li>
+                <li><strong>종료 기준:</strong> 연속 미탐지 시 항적 삭제.</li>
+            </ul>
+            <div class="description">
+                'Acceptance Gate'로 후보를 추리고 3-of-5와 같은 규칙으로 가짜 항적 생성을 방지하며 추적 신뢰성을 확보합니다.
+            </div>
+        </article>
+
+        <!-- Page 4 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">04</span>
+                <h2>선형 칼만 필터(Kalman Filter) 기초</h2>
+            </div>
+            <ul>
+                <li><strong>최적 상태 추정:</strong> 선형/가우시안 환경에서 오차 최소화.</li>
+                <li><strong>재귀적 구조:</strong> 예측(Prediction)과 보정(Update)의 반복.</li>
+                <li><strong>상태 전이:</strong> 물리적 운동 법칙으로 미래 예측.</li>
+                <li><strong>칼만 이득(K):</strong> 예측과 측정 사이의 가중치 조절.</li>
+                <li><strong>공분산(P):</strong> 추정치의 불확실성 관리.</li>
+            </ul>
+            <table>
+                <tr><th>기호</th><th>역할</th></tr>
+                <tr><td>x</td><td>상태 벡터 (위치, 속도 등)</td></tr>
+                <tr><td>F</td><td>상태 전이 행렬</td></tr>
+                <tr><td>K</td><td>칼만 이득</td></tr>
+                <tr><td>P</td><td>오차 공분산</td></tr>
+            </table>
+        </article>
+
+        <!-- Page 5 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">05</span>
+                <h2>확장 칼만 필터(EKF)의 원리</h2>
+            </div>
+            <ul>
+                <li><strong>비선형 대응:</strong> 테일러 급수로 비선형 시스템 선형화.</li>
+                <li><strong>야코비안(Jacobian):</strong> 편미분 행렬을 통한 모델 갱신.</li>
+                <li><strong>좌표계 변환:</strong> 구 좌표계(측정)와 직교 좌표계(상태) 연결.</li>
+                <li><strong>발산 위험:</strong> 선형화 오차 누적 시 성능 저하 주의.</li>
+            </ul>
+            <div class="description">
+                현실의 비선형 시스템을 다루기 위한 표준입니다. 레이더의 거리/각도 측정치를 직교 좌표계 항적으로 변환할 때 필수적입니다.
+            </div>
+        </article>
+
+        <!-- Page 6 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">06</span>
+                <h2>레이더 추적 EKF 시스템 모델</h2>
+            </div>
+            <ul>
+                <li><strong>상태 벡터:</strong> 거리, 속도, 고도 등 3~6차원 구성.</li>
+                <li><strong>운동 법칙:</strong> 등속/등고도 가정 하의 행렬 변환.</li>
+                <li><strong>비선형 측정 함수:</strong> 피타고라스 정리 등 기하학적 수식.</li>
+                <li><strong>잡음 특성:</strong> 센서 분해능(R) 및 환경 잡음(Q) 설정.</li>
+            </ul>
+            <div class="description">
+                비선형 함수 h(x)를 야코비안 행렬 H로 선형화하여 처리합니다. 초기값 설정과 잡음 공분산 튜닝이 성능의 핵심입니다.
+            </div>
+        </article>
+
+        <!-- Page 7 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">07</span>
+                <h2>적응형 확장 칼만 필터(AEKF)</h2>
+            </div>
+            <ul>
+                <li><strong>거리별 잡음 변화:</strong> 거리에 따른 잡음 세기 반영.</li>
+                <li><strong>열잡음(Thermal):</strong> 거리의 제곱에 비례하여 증가.</li>
+                <li><strong>글린트(Glint):</strong> 거리의 제곱에 반비례하여 감소.</li>
+                <li><strong>동적 공분산 R:</strong> 실시간 거리 기반 R값 업데이트.</li>
+            </ul>
+            <div class="description">
+                위성 발사체 등 원거리 추적 시 필수적입니다. 고정된 잡음 상수 대신 거리에 따라 변하는 잡음 모델을 사용하여 발산을 막습니다.
+            </div>
+        </article>
+
+        <!-- Page 8 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">08</span>
+                <h2>AEKF 성능 분석 (KSLV-I 사례)</h2>
+            </div>
+            <ul>
+                <li><strong>검증 데이터:</strong> 한국형 발사체 실제 궤적 시뮬레이션.</li>
+                <li><strong>평가 지표:</strong> 방위각 및 고도각 오차(RMS).</li>
+                <li><strong>드리프트 억제:</strong> 원거리에서의 오차 누적 해결.</li>
+                <li><strong>정밀도 충족:</strong> AN/FPS-16 레이더급 정밀도 확인.</li>
+            </ul>
+            <table>
+                <tr><th>이벤트</th><th>높이(km)</th><th>거리(km)</th></tr>
+                <tr><td>이륙</td><td>0</td><td>0.1</td></tr>
+                <tr><td>음속돌파</td><td>0.8</td><td>7.2</td></tr>
+                <tr><td>궤도진입</td><td>2054</td><td>302</td></tr>
+            </table>
+        </article>
+
+        <!-- Page 9 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">09</span>
+                <h2>상호작용 다중 모델(IMM) 필터</h2>
+            </div>
+            <ul>
+                <li><strong>다중 모델:</strong> 가속, 선회 등 다른 특성의 필터 병렬 운용.</li>
+                <li><strong>마르코프 연쇄:</strong> 모델 간 전환 확률 기반 대응.</li>
+                <li><strong>확률적 융합:</strong> 각 모델의 적합도(우도)에 따른 가중치.</li>
+                <li><strong>반응성:</strong> 급기동 시에도 지연 없이 추적 가능.</li>
+            </ul>
+            <div class="description">
+                단일 모델의 한계를 극복하기 위해 등속, 등가속 등 여러 필터를 섞어 씁니다. 표적 기동 변화를 빠르게 감지합니다.
+            </div>
+        </article>
+
+        <!-- Page 10 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">10</span>
+                <h2>IMM 알고리즘 4단계 과정</h2>
+            </div>
+            <ol style="margin-left: 20px; margin-bottom: 15px;">
+                <li><strong>상호 혼합 (Mixing):</strong> 이전 확률로 필터 입력값 혼합.</li>
+                <li><strong>필터링 (Filtering):</strong> 개별 모델별 예측 및 업데이트.</li>
+                <li><strong>확률 갱신 (Update):</strong> 측정치와 비교하여 모델 우도 계산.</li>
+                <li><strong>결과 결합 (Combination):</strong> 가중 합산하여 최종 항적 도출.</li>
+            </ol>
+            <div class="description">
+                '상태 상호작용'과 '결합'이 핵심입니다. 어떤 모델이 현재 상황에 맞는지 실시간으로 평가하여 최적의 값을 출력합니다.
+            </div>
+        </article>
+
+        <!-- Page 11 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">11</span>
+                <h2>IMM 주요 필터 모델 정의</h2>
+            </div>
+            <ul>
+                <li><strong>등속도(CV):</strong> 비기동 구간용, 노이즈 제거 우수.</li>
+                <li><strong>등가속도(CA):</strong> 속도 변화 추적용.</li>
+                <li><strong>조항 선회(CT):</strong> 원운동 기동 정밀 추적용.</li>
+                <li><strong>잡음 설정 차별화:</strong> 모델별 반응성에 맞춰 Q값 조정.</li>
+            </ul>
+            <div class="description">
+                CV, CA, TURN 모델 등을 조합하여 구성합니다. 특히 TURN 모델은 급선회 시 오차를 획기적으로 줄여줍니다.
+            </div>
+        </article>
+
+        <!-- Page 12 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">12</span>
+                <h2>기동 표적 IMM 성능 비교</h2>
+            </div>
+            <ul>
+                <li><strong>자동 선택:</strong> 시나리오에 따라 최적 모델 확률 상승.</li>
+                <li><strong>오차 감소:</strong> 단일 필터 대비 지연(Lag) 및 오차 억제.</li>
+                <li><strong>빠른 복구:</strong> 기동 종료 후 빠르게 안정화.</li>
+                <li><strong>3차원 기동:</strong> 다이빙, 복합 선회 등에서도 우수.</li>
+            </ul>
+            <table>
+                <tr><th>시나리오</th><th>단일 모델 RMS</th><th>IMM RMS</th></tr>
+                <tr><td>비기동</td><td>289m</td><td>241m</td></tr>
+                <tr><td>5.6g 선회</td><td>968m</td><td>391m</td></tr>
+            </table>
+        </article>
+
+        <!-- Page 13 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">13</span>
+                <h2>4D 레이더와 라이다(LiDAR) 융합</h2>
+            </div>
+            <ul>
+                <li><strong>악천후 대응:</strong> 눈/비 환경에서 레이더로 라이다 보완.</li>
+                <li><strong>데이터 통합:</strong> 고해상도(라이다) + 속도/강인성(레이더).</li>
+                <li><strong>Late Fusion:</strong> 개별 처리 후 통계적 융합으로 효율화.</li>
+                <li><strong>IMM 적용:</strong> 자율주행 객체의 급격한 거동 예측.</li>
+            </ul>
+            <div class="description">
+                맑은 날엔 라이다, 악천후엔 레이더 정보를 우선시하는 유연한 추적 시스템을 구축하여 자율주행 안전성을 높입니다.
+            </div>
+        </article>
+
+        <!-- Page 14 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">14</span>
+                <h2>딥러닝 기반 추적 및 LSTM</h2>
+            </div>
+            <ul>
+                <li><strong>Model-free:</strong> 수식 정의 없이 데이터로 운동 특성 학습.</li>
+                <li><strong>LSTM 네트워크:</strong> 시계열 데이터의 장기 의존성 학습.</li>
+                <li><strong>한계 극복:</strong> 모델 불일치 및 잡음 통계 불확실성 해결.</li>
+                <li><strong>신경망 필터:</strong> 예측/보정 과정을 신경망으로 대체.</li>
+            </ul>
+            <div class="description">
+                전통적 필터의 수학적 가정 없이도, 방대한 데이터를 통해 복잡한 기동을 직관적으로 학습하고 예측합니다.
+            </div>
+        </article>
+
+        <!-- Page 15 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">15</span>
+                <h2>모듈형 다중 표적 추적(MTT)</h2>
+            </div>
+            <ul>
+                <li><strong>모듈화:</strong> 연관, 관리, 예측, 필터를 독립 신경망으로 구성.</li>
+                <li><strong>게이팅(Gating):</strong> 대규모 데이터를 클러스터로 분할 처리.</li>
+                <li><strong>유연성:</strong> 센서 특성에 맞춰 모듈 조합 가능.</li>
+                <li><strong>해석 가능성:</strong> 각 단계의 출력을 검증 가능하게 설계.</li>
+            </ul>
+            <table>
+                <tr><th>모듈</th><th>네트워크</th><th>기능</th></tr>
+                <tr><td>Association</td><td>Bi-LSTM</td><td>측정치-항적 연결</td></tr>
+                <tr><td>Filter</td><td>Stacked LSTM</td><td>잡음 제거</td></tr>
+                <tr><td>Track Mgmt</td><td>Rate-based</td><td>생성/소멸 관리</td></tr>
+            </table>
+        </article>
+
+        <!-- Page 16 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">16</span>
+                <h2>양방향 LSTM 데이터 연관</h2>
+            </div>
+            <ul>
+                <li><strong>Bi-LSTM:</strong> 과거와 미래 시점 정보를 모두 활용.</li>
+                <li><strong>밀집 환경:</strong> 교차 표적 간 간섭 배제 및 정확한 매칭.</li>
+                <li><strong>성능 우위:</strong> JPDA 대비 연산량 적고 정확도 높음.</li>
+                <li><strong>확장성:</strong> 타겟 수 증가에도 강건한 성능 유지.</li>
+            </ul>
+            <div class="description">
+                '어떤 측정치가 누구의 것인가'를 판단할 때 전체 시퀀스의 맥락을 파악하여 얽히고설킨 타겟들을 정확히 구분합니다.
+            </div>
+        </article>
+
+        <!-- Page 17 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">17</span>
+                <h2>LSTM 예측 및 필터링 성능</h2>
+            </div>
+            <ul>
+                <li><strong>독립 모델:</strong> 위치와 속도 예측망을 별도 구성.</li>
+                <li><strong>가변 기동:</strong> 급선회/가속 구간 끊김 없는 추종.</li>
+                <li><strong>오차 감소:</strong> IMM 대비 위치 오차(MSE) 약 71% 감소.</li>
+                <li><strong>부드러운 전이:</strong> 모델 전환 시 튀는 현상 억제.</li>
+            </ul>
+            <div class="description">
+                Stacked LSTM 구조를 사용하여 잡음을 효과적으로 제거하고, IMM 특유의 모드 전환 지연 없이 매끄러운 궤적을 그립니다.
+            </div>
+        </article>
+
+        <!-- Page 18 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">18</span>
+                <h2>KalmanNet: 하이브리드 아키텍처</h2>
+            </div>
+            <ul>
+                <li><strong>Hybrid:</strong> 칼만 필터 구조 + 딥러닝 학습 능력.</li>
+                <li><strong>K-Gain 학습:</strong> RNN이 최적의 칼만 이득을 직접 예측.</li>
+                <li><strong>지식 불필요:</strong> 잡음(Q, R) 사전 정보 없이 특성 파악.</li>
+                <li><strong>안정성 이슈:</strong> 실제 도로 환경에선 아직 검증 필요.</li>
+            </ul>
+            <div class="description">
+                수학적 모델의 해석 가능성과 AI의 유연성을 결합한 시도이나, 안전 필수 시스템 적용에는 신중함이 요구됩니다.
+            </div>
+        </article>
+
+        <!-- Page 19 -->
+        <article class="card">
+            <div class="card-header">
+                <span class="page-num">19</span>
+                <h2>파티클 필터(Particle Filter)</h2>
+            </div>
+            <ul>
+                <li><strong>비가우시안:</strong> 어떤 잡음 분포도 처리 가능한 유연성.</li>
+                <li><strong>다중 모드:</strong> 복잡한 확률 밀도 함수 표현 가능.</li>
+                <li><strong>샘플링:</strong> 수많은 입자(Particle)로 확률 분포 근사.</li>
+                <li><strong>단점:</strong> 막대한 연산량으로 실시간 적용 어려움.</li>
+            </ul>
+            <div class="description">
+                가장 강력한 비선형 대응력을 가지지만, '파티클'을 많이 쓸수록 연산 비용이 급증하여 특수 목적에 주로 사용됩니다.
+            </div>
+        </article>
+
+        <!-- Page 20 & Conclusion -->
+        <article class="metaphor">
+            <h2>결론 및 요약</h2>
+            <p>
+                레이더 추적은 <strong>"안개 속 무용수의 춤을 기록하는 일"</strong>과 같습니다.<br><br>
+                <strong>EKF</strong>는 깐깐한 수학자처럼 계산하고,<br>
+                <strong>IMM</strong>은 여러 전문가 팀이 상황을 판단하며,<br>
+                <strong>딥러닝</strong>은 직관이 뛰어난 안무가처럼 움직임을 예측합니다.<br><br>
+                미래의 기술은 이들을 융합하여 어떤 환경에서도 진실된 항적을 그려낼 것입니다.
+            </p>
+            <table style="margin-top: 30px; background: transparent;">
+                <tr>
+                    <th>1세대</th><th>2세대</th><th>3세대</th><th>4세대 (미래)</th>
+                </tr>
+                <tr>
+                    <td>Alpha-Beta 필터</td>
+                    <td>EKF, IMM</td>
+                    <td>센서 융합, JPDA</td>
+                    <td>AI 하이브리드</td>
+                </tr>
+            </table>
+        </article>
+
+    </div>
+</body>
+</html>
