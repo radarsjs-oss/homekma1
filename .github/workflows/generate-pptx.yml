@@ -1,0 +1,28 @@
+name: Generate PPTX from Markdown
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate-pptx:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Install pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+
+      - name: Convert Markdown to PPTX
+        run: |
+          pandoc newtracking.md -o newtracking.pptx
+
+      - name: Commit and push PPTX
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add newtracking.pptx
+          git commit -m "chore: add PPTX generated from newtracking.md" || echo "No changes to commit"
+          git push
