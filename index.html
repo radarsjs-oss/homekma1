@@ -6,7 +6,7 @@
   <title>생성형 AI 입문자 학습 사이트</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -16,55 +16,78 @@
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
           },
+          animation: {
+            'fade-in': 'fadeIn 1s ease-in-out',
+            'slide-up': 'slideUp 0.8s ease-out',
+            'bounce-slow': 'bounce 2s infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(30px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+          },
         },
       },
     }
   </script>
   <style>
-    .gradient-border {
-      background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-      padding: 2px;
-      border-radius: 12px;
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
     }
-    .gradient-border > div {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      transition: all 0.3s ease;
+    .dark body {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
     }
-    .dark .gradient-border > div {
-      background: #1f2937;
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    .gradient-border:hover > div {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    .dark .glass {
+      background: rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .dark .gradient-border:hover > div {
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .hero-button {
-      background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-      transition: all 0.3s ease;
+    .card-hover:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     }
-    .hero-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    .dark .card-hover:hover {
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    .gradient-text {
+      background: linear-gradient(45deg, #ffffff, #e0e7ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .dark .gradient-text {
+      background: linear-gradient(45deg, #f1f5f9, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
   </style>
 </head>
-<body class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-300">
+<body class="text-white overflow-x-hidden">
   <!-- Navigation -->
-  <nav class="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-50 border-b border-gray-200 dark:border-gray-700">
+  <nav class="fixed top-0 w-full z-50 glass animate-fade-in">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
-        <div class="font-bold text-xl">AI 학습</div>
-        <div class="flex items-center space-x-4">
-          <a href="#hero" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">홈</a>
-          <a href="#llm" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">LLM 원리</a>
-          <a href="#prompt" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">프롬프트</a>
-          <a href="#ethics" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">AI 윤리</a>
-          <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+        <div class="font-bold text-xl gradient-text">AI 학습</div>
+        <div class="flex items-center space-x-6">
+          <a href="#hero" class="hover:text-blue-300 transition-colors duration-300">홈</a>
+          <a href="#llm" class="hover:text-blue-300 transition-colors duration-300">LLM 원리</a>
+          <a href="#prompt" class="hover:text-blue-300 transition-colors duration-300">프롬프트</a>
+          <a href="#ethics" class="hover:text-blue-300 transition-colors duration-300">AI 윤리</a>
+          <button id="theme-toggle" class="p-2 rounded-full glass hover:bg-white/20 transition-all duration-300">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
             </svg>
@@ -75,66 +98,91 @@
   </nav>
 
   <!-- Hero Section -->
-  <section id="hero" class="min-h-screen flex items-center justify-center px-4">
-    <div class="text-center max-w-4xl">
-      <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-        AI의 미래를 학습하세요
+  <section id="hero" class="min-h-screen flex items-center justify-center px-4 relative">
+    <div class="absolute inset-0 bg-black/20"></div>
+    <div class="text-center max-w-5xl relative z-10 animate-slide-up">
+      <h1 class="text-6xl md:text-8xl font-extrabold mb-6 gradient-text leading-tight">
+        AI의 미래를<br>학습하세요
       </h1>
-      <p class="text-xl md:text-2xl mb-8 text-gray-600 dark:text-gray-300">
-        생성형 AI의 기초부터 실전 응용까지, 입문자를 위한 완벽한 가이드
+      <p class="text-xl md:text-2xl mb-12 text-white/90 max-w-3xl mx-auto leading-relaxed">
+        생성형 AI의 기초부터 실전 응용까지,<br>입문자를 위한 완벽한 가이드
       </p>
-      <button class="hero-button text-white font-semibold py-4 px-8 rounded-full text-lg">
+      <button class="bg-white text-gray-900 font-bold py-4 px-10 rounded-full text-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-2xl animate-bounce-slow">
         학습 시작하기
       </button>
+    </div>
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+      </svg>
     </div>
   </section>
 
   <!-- Content Grid -->
-  <section class="py-20 px-4">
+  <section class="py-24 px-4 relative">
     <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16 animate-fade-in">
+        <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-4">학습 콘텐츠</h2>
+        <p class="text-xl text-white/80">세 가지 핵심 영역으로 나누어 체계적으로 학습하세요</p>
+      </div>
       <div class="grid md:grid-cols-3 gap-8">
 
         <!-- LLM 원리 -->
-        <div id="llm" class="gradient-border">
-          <div>
-            <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">LLM 원리</h2>
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
-              대규모 언어 모델의 작동 원리와 트랜스포머 아키텍처를 이해하세요.
+        <div id="llm" class="glass rounded-2xl p-8 card-hover animate-slide-up" style="animation-delay: 0.2s">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mx-auto mb-6 flex items-center justify-center">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+              </svg>
+            </div>
+            <h3 class="text-2xl font-bold mb-4 gradient-text">LLM 원리</h3>
+            <p class="text-white/80 mb-6 leading-relaxed">
+              대규모 언어 모델의 작동 원리와 트랜스포머 아키텍처를 깊이 이해하세요.
             </p>
-            <ul class="space-y-2 text-sm">
-              <li>• 토큰화와 임베딩</li>
-              <li>• 어텐션 메커니즘</li>
-              <li>• 사전 학습과 미세 조정</li>
+            <ul class="text-left space-y-3 text-white/70">
+              <li class="flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>토큰화와 임베딩</li>
+              <li class="flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>어텐션 메커니즘</li>
+              <li class="flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>사전 학습과 미세 조정</li>
             </ul>
           </div>
         </div>
 
         <!-- 프롬프트 엔지니어링 -->
-        <div id="prompt" class="gradient-border">
-          <div>
-            <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">프롬프트 엔지니어링</h2>
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
+        <div id="prompt" class="glass rounded-2xl p-8 card-hover animate-slide-up" style="animation-delay: 0.4s">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mx-auto mb-6 flex items-center justify-center">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+              </svg>
+            </div>
+            <h3 class="text-2xl font-bold mb-4 gradient-text">프롬프트 엔지니어링</h3>
+            <p class="text-white/80 mb-6 leading-relaxed">
               효과적인 프롬프트를 작성하여 AI의 출력을 최적화하는 방법을 배우세요.
             </p>
-            <ul class="space-y-2 text-sm">
-              <li>• 프롬프트 구조화</li>
-              <li>• 컨텍스트 제공</li>
-              <li>• 체인 오브 쏘트 기법</li>
+            <ul class="text-left space-y-3 text-white/70">
+              <li class="flex items-center"><span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>프롬프트 구조화</li>
+              <li class="flex items-center"><span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>컨텍스트 제공</li>
+              <li class="flex items-center"><span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>체인 오브 쏘트 기법</li>
             </ul>
           </div>
         </div>
 
         <!-- AI 윤리 -->
-        <div id="ethics" class="gradient-border">
-          <div>
-            <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">AI 윤리</h2>
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
+        <div id="ethics" class="glass rounded-2xl p-8 card-hover animate-slide-up" style="animation-delay: 0.6s">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full mx-auto mb-6 flex items-center justify-center">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <h3 class="text-2xl font-bold mb-4 gradient-text">AI 윤리</h3>
+            <p class="text-white/80 mb-6 leading-relaxed">
               AI 사용의 윤리적 고려사항과 책임 있는 AI 개발에 대해 알아보세요.
             </p>
-            <ul class="space-y-2 text-sm">
-              <li>• 편향과 공정성</li>
-              <li>• 프라이버시 보호</li>
-              <li>• 투명성과 설명 가능성</li>
+            <ul class="text-left space-y-3 text-white/70">
+              <li class="flex items-center"><span class="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>편향과 공정성</li>
+              <li class="flex items-center"><span class="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>프라이버시 보호</li>
+              <li class="flex items-center"><span class="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>투명성과 설명 가능성</li>
             </ul>
           </div>
         </div>
@@ -159,6 +207,16 @@
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       html.classList.add('dark');
     }
+
+    // Smooth scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+          behavior: 'smooth'
+        });
+      });
+    });
   </script>
 </body>
 </html>
